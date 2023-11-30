@@ -1,7 +1,6 @@
 import sys
 from datetime import date
 from datetime import datetime
-#import mysql.connector
 import sqlite3
 
 
@@ -11,7 +10,6 @@ DB_EXISTS = False
 TABLE_EXISTS = False
 
 con = sqlite3.connect(f"{DATABASE}.db")
-
 
 
 
@@ -84,18 +82,36 @@ if len(sys.argv) == 1:
 
     # print our date objects we are working with
     dates = []
-    for row in logged:
-        print(datetime.fromisoformat(f'{str(row["date"])}T{row["log_time"]}'))
-        dates.append(datetime.fromisoformat(f'{str(row["date"])}T{row["log_time"]}'))
+    d_timedelta = []
+    previous_action = ""
+    idx = 0
+    for i in logged:
+        date = datetime.fromisoformat(f'{str(i["date"])}T{i["log_time"]}')
+        print(f'{date}, {i["action"]}')
+        dates.append(datetime.fromisoformat(f'{str(i["date"])}T{i["log_time"]}'))
 
+        if i["action"] == "out" and previous_action == "in":
+            d_timedelta.append(dates[idx] - dates[idx - 1])
+        elif i["action"] == "in":
+            previous_action = "in"
+
+        idx += 1
         '''day_total = dates[1] - dates[0]
         row["day_total"] = day_total'''
     #date.fromisoformat()
-
+    
+    idx = 0
+    while idx < len(d_timedelta):
+        print(f"Diff: {d_timedelta[idx]}")
+        d = d_timedelta[idx] + d_timedelta[idx + 1]
+        idx += 2
+    print(f"Total = {d}")
+    print(d_timedelta[0] + d_timedelta[1])
+    
     # difference between them
     # returns a timedelta object?
     print(logged)
-    print(dates[1] - dates[0])
+    #print(dates[1] - dates[0])
 
 
 
