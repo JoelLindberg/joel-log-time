@@ -1,41 +1,32 @@
 import sys
+import os.path
 from datetime import date
 from datetime import datetime
 import sqlite3
 
 
-DATABASE = "joel_log_time"
+DB_FILE = "joel_log_time.db"
 TABLE = "log_time"
+TABLE_SUM = "sum_time"
 DB_EXISTS = False
 TABLE_EXISTS = False
-
-con = sqlite3.connect(f"{DATABASE}.db")
-
+TABLE_SUM_EXISTS = False
 
 
 # Check if database exists - otherwise create it
 # Need to create this for sqlite to check for the database file instead
-'''cnx.connect()
-cur = cnx.cursor()
-cur.execute("SHOW DATABASES;")
-row = cur.fetchall()
-# query result: a list containing tuples that contains the database name at index 0
-for i in row:
-    if i[0] == DATABASE:
-        print(f"DB exists: {i[0]}")
-        DB_EXISTS = True
-        break
+if os.path.exists(f"./{DB_FILE}"):
+    if os.path.isfile(f"./{DB_FILE}") is not True:
+        print("There is a directory named the same as the database that is being created. Fix it.")
+else:
+    print(f"db will be created: ./{DB_FILE}")
 
-if DB_EXISTS == False:
-    cur = cnx.cursor()
-    cur.execute(f"CREATE DATABASE {DATABASE};")
-    print("Created DB")
-
-cnx.disconnect()'''
+con = sqlite3.connect(f"{DB_FILE}")
 
 
 
-# Check if table exists - otherwise create it
+
+# log_time exists? - otherwise create it
 cur = con.cursor()
 
 cur.execute("SELECT name FROM sqlite_master")
@@ -59,12 +50,43 @@ if TABLE_EXISTS == False:
     cur.execute(tables)
     print("Created table")
 
+
+
+
+# sum_time exists? - otherwise create it
+cur = con.cursor()
+
+cur.execute("SELECT name FROM sqlite_master")
+r = cur.fetchall()
+
+for i in r:
+    if i[0] == "sum_time":
+        TABLE_SUM_EXISTS = True
+        print(f"Table exists: {i[0]}")
+
+if TABLE_SUM_EXISTS == False:
+    tables = f"""CREATE TABLE {TABLE_SUM} (
+        sum_id INTEGER PRIMARY KEY,
+        sum_date date,
+        sum varchar(5)
+        );"""
+    # in/out <- 3
+    #15:50 <- 5
+    cur.execute(tables)
+    print("Created table")
+
+
+
+
 if len(sys.argv) == 1:
     # GET SALDO
     # This is where main logic will end up
 
+    select_date = f"{date.today()}"
+    print(f"date selected from: {date.today()}")
+
     cur = con.cursor()
-    cur.execute(f"SELECT log_id, logged_date, action, log_time, comment FROM {TABLE} WHERE logged_date = '2023-11-23' ORDER BY log_time;")
+    cur.execute(f"SELECT log_id, logged_date, action, log_time, comment FROM {TABLE} WHERE logged_date = '{select_date}' ORDER BY log_time;")
     r = cur.fetchall()
     #print(r)
     
@@ -78,6 +100,8 @@ if len(sys.argv) == 1:
         row["log_time"] = i[3]
         row["comment"] = i[4]
         logged.append(row)
+
+        print(i)
     print(logged)
 
     # print our date objects we are working with
@@ -100,6 +124,8 @@ if len(sys.argv) == 1:
         row["day_total"] = day_total'''
     #date.fromisoformat()
     
+    print(logged)
+
     idx = 0
     while idx < len(d_timedelta):
         print(f"Diff: {d_timedelta[idx]}")
@@ -110,7 +136,6 @@ if len(sys.argv) == 1:
     
     # difference between them
     # returns a timedelta object?
-    print(logged)
     #print(dates[1] - dates[0])
 
 

@@ -24,8 +24,8 @@ I will go with sqlite for now. Since both the mysql driver and python's sqlite l
 
 
 
-Table:
-log_id          int NOT NULL AUTO_INCREMENT
+Table log_time:
+log_id          INTEGER PRIMARY KEY
 logged_date     date                            1970-01-01 00:00:01.000000
 action          varchar(3)                      data: in/out
 log_time        varchar(5)
@@ -44,3 +44,9 @@ in 16
 ut 17 go home
 
 [{23-11-16, 07:00}, {23-11-16, 17:00}]
+
+
+Table sum_time:
+sum_id      INTEGER PRIMARY KEY
+sum_date    date
+sum         varchar(5)
