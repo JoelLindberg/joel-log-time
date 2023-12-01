@@ -1,1 +1,0 @@
-CREATE DATABASE joel_log_time;
