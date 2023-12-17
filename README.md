@@ -52,3 +52,4 @@ sum_id      INTEGER PRIMARY KEY
 sum_date    date
 sum         varchar(5)
 PRIMARY KEY (sum_id)
+

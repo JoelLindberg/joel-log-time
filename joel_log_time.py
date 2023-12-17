@@ -1,6 +1,5 @@
 import sys
 import os.path
-from datetime import date
 from datetime import datetime
 import sqlite3
 import argparse
