@@ -1,0 +1,26 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Debug --sum",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/joel_log_time.py",
+            "args": ["2023-12-17", "--sum"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Debug -i",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/joel_log_time.py",
+            "args": ["2023-12-17", "-i", "08:00"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

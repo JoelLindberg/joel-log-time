@@ -27,9 +27,10 @@ I will go with sqlite for now. Since both the mysql driver and python's sqlite l
 Table log_time:
 log_id          INTEGER PRIMARY KEY
 logged_date     date                            1970-01-01 00:00:01.000000
-action          varchar(3)                      data: in/out
-log_time        varchar(5)
+action          varchar(3)                      in/out
+log_time        varchar(5)                      00:00
 comment         varchar(30)
+log_state       varchar(4)                      open/done   <- explicitly called - when done is set the sum for the day is re-calculated
 PRIMARY KEY     (log_id)
 
 Example day:
@@ -50,3 +51,4 @@ Table sum_time:
 sum_id      INTEGER PRIMARY KEY
 sum_date    date
 sum         varchar(5)
+PRIMARY KEY (sum_id)
