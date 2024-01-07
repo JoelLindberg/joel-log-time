@@ -17,11 +17,26 @@ Later learned there is also something called getopt. Here is my summary of the m
 * getopts seems to be more newer and standardized
 
 
-## sqlite
+## SQLite
 
 * https://sqlite.org/download.html
-* https://sqlite.org/cli.html
+* CLI: https://sqlite.org/cli.html
 * https://www.sqlite.org/lang_createtable.html#rowid
+
+
+### Time in SQLite
+
+https://www.sqlite.org/lang_datefunc.html
+
+
+date(time-value, modifier, modifier, ...)
+time(time-value, modifier, modifier, ...)
+datetime(time-value, modifier, modifier, ...)
+julianday(time-value, modifier, modifier, ...)
+unixepoch(time-value, modifier, modifier, ...)
+strftime(format, time-value, modifier, modifier, ...)
+timediff(time-value, time-value)
+
 
 
 ## Database structure

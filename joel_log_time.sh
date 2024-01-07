@@ -1,6 +1,65 @@
 #!/bin/bash
 
 
+# Check if sqlite3 installed and the version
+
+sqlite_installed=$(sqlite3 -version)
+
+if [ $? -eq 127 ];
+then
+   echo "sqlite3 was not found. It must be installed for this utility to work."
+   exit
+fi
+
+sqlite_version=$(echo $sqlite_installed | grep -Eow "3.41.[0-9]+")
+
+if [ "${#sqlite_version}" -eq 0 ];
+then
+   echo "Warning: sqlite3 version 3.41.x is not used. It is the only version this tool has been tested with."
+   echo
+fi
+
+
+# Database items
+
+log_database="workwork.db"
+logged_time="logged_time"
+worked_hours="worked_hours"
+
+# Check if the tables exist - otherwise create them
+
+create_logged_time=$(echo "CREATE TABLE $logged_time (\
+log_id INTEGER PRIMARY KEY,\
+logged_date date,\
+action varchar(3),\
+log_time varchar(5),\
+log_state varchar(4),\
+comment varchar(30)\
+);")
+
+create_worked_hours="CREATE TABLE $worked_hours (\
+sum_id INTEGER PRIMARY KEY,\
+sum_date date,\
+sum varchar(5)\
+);"
+
+logged_time_exists=$(sqlite3 ${log_database} .tables | grep -Eow "$logged_time")
+
+if [ -z $logged_time_exists ];
+then
+   sqlite3 $log_database "$create_logged_time"
+fi
+
+worked_hours_exists=$(sqlite3 ${log_database} .tables | grep -Eow "$worked_hours")
+
+if [ -z $worked_hours_exists ];
+then
+   sqlite3 $log_database "$create_worked_hours"
+fi
+
+
+# Menu methods
+
 Help() {
    # Display help
    echo "🐢 Joel's Log Time"
@@ -49,6 +108,9 @@ Saldo() {
    echo "Saldo"
 }
 
+
+# Helper methods
+
 ValidateDatetime() {
    # Validate date and time
    # Shorter version of ISO 8601 date (2004-02-12T15:19:21+00:00) -> 20023-11-05T08:30
@@ -77,7 +139,26 @@ ValidateDate() {
 }
 
 
-# Show help if no args are given
+# Database methods
+
+# TODO:
+
+# input date and/or time to epoch time
+# https://stackoverflow.com/questions/10990949/convert-date-time-string-to-epoch-in-bash
+date --date '18:00' +"%s"
+
+#sqlite3 test.db 'select * from drinks'
+
+# timedelta: diff epoch time between epoch timestamps
+
+# sum timedeltas and save the result for the day in worked_hours
+
+
+
+
+
+# Show help (menu) if no args are given
+
 if [ -z $1 ];
 then
    Help
@@ -123,20 +204,3 @@ while getopts "i:o:e:sh" option; do
          exit;;
    esac
 done
-
-
-# TODO:
-
-# input date and/or time to epoch time
-# https://stackoverflow.com/questions/10990949/convert-date-time-string-to-epoch-in-bash
-date --date '18:00' +"%s"
-
-# sqlite3 query for shell script
-# https://sqlite.org/cli.html
-sqlite3 test.db '.tables'
-sqlite3 test.db 'select * from drinks'
-#sqlite3 test.db 'create table drinks (id INTEGER);'
-
-# diff epoch time between epoch timestamps
-
-# sum many epoch timestamps
