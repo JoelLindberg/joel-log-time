@@ -1,28 +1,30 @@
-# joel_log_time app
+# Joel's Log Time (shell) app
 
-Python SQLite:
+This app was originally written in Python, but I decided to re-write it in bash as I have a desire to get fluent in bash.
 
-https://docs.python.org/3/library/sqlite3.html
+Put the original python cmd line app in the sandbox folder.
 
-*"The sqlite3 module was written by Gerhard Häring. It provides an SQL interface compliant with the DB-API 2.0 specification described by PEP 249"*
+# Work notes
 
-Python MySQL:
+## Handling cmd-line args (positional) in bash
 
-Apparently this driver is following the Python DB API 2.0 standard referenced above. This makes SQLite and MySQL very interchangeable for Python.
+Reference and inspiration: https://www.redhat.com/sysadmin/arguments-options-bash-scripts
 
-https://dev.mysql.com/doc/refman/8.0/en/apis-python.html
+Later learned there is also something called getopt. Here is my summary of the main and most important differences that helped me to decide (decided on getopts):
+
+* getopt is an external program
+* getopts is a bash builtin program
+* getopts seems to be more newer and standardized
 
 
 ## sqlite
 
-I will go with sqlite for now. Since both the mysql driver and python's sqlite library use the same Python DB 2.0 API it should be easy to switch later. I could also program some kind of encapsulation with an interface to allow an easy update later if I want to move to MySQL.
-
 * https://sqlite.org/download.html
 * https://sqlite.org/cli.html
-* https://docs.python.org/3/library/sqlite3.html
 * https://www.sqlite.org/lang_createtable.html#rowid
 
 
+## Database structure
 
 Table log_time:
 log_id          INTEGER PRIMARY KEY
