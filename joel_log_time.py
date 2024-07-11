@@ -1,18 +1,24 @@
 import sys
 import os.path
-from datetime import datetime
-import sqlite3
 import argparse
+import sqlite3
+from datetime import datetime
 from datetime import timedelta
+import re
+
+from rich.console import Console
+from rich.table import Table
+from rich.text import Text
+
+
+console = Console(tab_size=4)
 
 parser = argparse.ArgumentParser(prog="Joel Log Time console app")
-parser.add_argument("date")
-parser.add_argument("-i", "--time-in", metavar="time")
-parser.add_argument("-o", "--time-out", metavar="time")
-parser.add_argument("--sum", help="Calculate and add saldo for the day.", action="store_true")
-parser.add_argument("--show", help="Show entries for the date selected", action="store_true")
+parser.add_argument("-i", "--time-in", help='-i "08:00 2024-07-11"', metavar="time")
+parser.add_argument("-o", "--time-out", help='-i "17:00 2024-07-11"', metavar="time")
+parser.add_argument("--sum", help="Calculate saldo for all days between the specified date up until todays date", metavar="date")
+parser.add_argument("--show", help="Show entries around a specific date", metavar="date")
 parser.add_argument("--remove", help="Remove an entry using log_id number", metavar="id")
-parser.add_argument("--saldo", help="Show the saldo - the result from the sum table entries", action="store_true")
 
 args = parser.parse_args()
 
@@ -29,9 +35,9 @@ TABLE_SUM_EXISTS = False
 # Need to create this for sqlite to check for the database file instead
 if os.path.exists(f"./{DB_FILE}"):
     if os.path.isfile(f"./{DB_FILE}") is not True:
-        print("There is a directory named the same as the database that is being created. Fix it.")
+        print("Could not create the database: There is a directory named the same as the database that is being created")
 else:
-    print(f"db will be created: ./{DB_FILE}")
+    print(f"Creating database: ./{DB_FILE}")
 
 con = sqlite3.connect(f"{DB_FILE}")
 
@@ -83,36 +89,69 @@ if TABLE_SUM_EXISTS == False:
     print("Created table")
 
 
-def log_in(log_date: str, log_time: str, log_comment: str):
-    """Adds a time log in the DB for IN events."""
+def validate_log_time(log_time: str) -> list:
+    time_date = []
+    p1 = "^[0-9]{2}:[0-9]{2}?"
+    p2 = "^[0-9]{2}:[0-9]{2} [0-9]{4}-[0-9]{2}-[0-9]{2}?"
+
+    if re.fullmatch(p1, log_time) != None:
+        time_date.append(log_time)
+        time_date.append(datetime.now().strftime("%Y-%m-%d"))
+    elif re.fullmatch(p2, log_time) != None:
+        time_date = log_time.split()
+
+    if len(time_date) == 0:
+        raise "Something went wrong. Possibly incorrect time and date format entered."
+
+    return time_date
+
+
+def log_in(log_time: str, log_comment: str):
+    '''Adds a time log in the DB for IN events.
+
+    :param log_time: Expects a string like "08:15 2024-06-28".
+    Providing a string with only time "08:15" defaults to todays date.
+    :param log_comment: A string with any extra info. Empty default.
+    '''
     # Add guard against adding IN after IN - Only allow pattern: IN -> UT -> IN -> UT etc
+
+    time_date = validate_log_time(log_time)
+
     cur = con.cursor()
-    insert_data = (f"INSERT INTO {TABLE} ("
+    insert_query = (f"INSERT INTO {TABLE} ("
         "logged_date,"
         "action,"
         "log_time,"
         "comment) VALUES ("
-        f"'{log_date}',"
+        f"'{time_date[1]}',"
         "'in',"
-        f"'{log_time}',"
+        f"'{time_date[0]}',"
         f"\"{log_comment}\");")
-    cur.execute(insert_data)
+    cur.execute(insert_query)
     con.commit()
 
-def log_out(log_date: str, log_time: str, log_comment: str):
-    """Adds a time log in the DB for OUT events."""
-    # Add guard against adding UT after UT - Only allow pattern: IN -> UT -> IN -> UT etc
+def log_out(log_time: str, log_comment = ""):
+    '''Adds a time log in the DB for OUT events.
+
+    :param log_time: Expects a string like "17:15 2024-06-28".
+    Providing a string with only time "17:15" defaults to todays date.
+    :param log_comment: A string with any extra info. Empty default.
+    '''
+    # Add guard against adding OUT after OUT - Only allow pattern: IN -> OUT -> IN -> OUT etc
+
+    time_date = validate_log_time(log_time)
+
     cur = con.cursor()
-    insert_data = (f"INSERT INTO {TABLE} ("
+    insert_query = (f"INSERT INTO {TABLE} ("
         "logged_date,"
         "action,"
         "log_time,"
         "comment) VALUES ("
-        f"'{log_date}',"
+        f"'{time_date[1]}',"
         "'out',"
-        f"'{log_time}',"
+        f"'{time_date[0]}',"
         f"\"{log_comment}\");")
-    cur.execute(insert_data)
+    cur.execute(insert_query)
     con.commit()
 
 
@@ -198,24 +237,55 @@ def log_sum(log_date: str):
 
 
 
-def log_show(log_date: str):
-    """Show entries for the day, ordered by time."""
-    cur = con.cursor()
+def log_show(log_date = ""):
+    """Show entries ordered by time.
+    Also shows some days before and after for convenience.
+    A specific origin date can be set."""
+    if log_date == "":
+        log_datetime = datetime.now()
+    else:
+        log_datetime = datetime.fromisoformat(log_date)
+
+    before = (log_datetime - timedelta(days=15)).strftime("%Y-%m-%d")
+    after = (log_datetime + timedelta(days=15)).strftime("%Y-%m-%d")
+
+    # Don't allow "after" to be set in the future
+    if after > datetime.now().strftime("%Y-%m-%d"):
+        after = datetime.now().strftime("%Y-%m-%d")
+
     show_data = ("SELECT log_id,"
         "logged_date,"
         "action,"
         "log_time,"
         f"comment FROM {TABLE} "
-        f"WHERE logged_date = '{log_date}' ORDER BY log_time;")
+        f"WHERE logged_date >= '{before}' AND logged_date <= '{after}' ORDER BY logged_date, log_time;")
+    cur = con.cursor()
     cur.execute(show_data)
     r = cur.fetchall()
-    for l in r:
-        print(l)
 
-def log_remove(log_date: str, log_id: int):
+    table = Table(title=f"Entries between {before} and {after}")
+    table.add_column("id", justify="right", style="cyan", no_wrap=True)
+    table.add_column("action", style="blue")
+    table.add_column("time", style="magenta")
+    table.add_column("logged_date", justify="right", style="green")
+    table.add_column("comment", justify="right", style="green")
+
+    for l in r:
+        table.add_row(str(l[0]), str(l[2]), str(l[3]), str(l[1]), str(l[4]))
+        #print(l)
+    
+    #console = Console()
+    console.print(table)
+    
+
+
+    
+
+
+def log_remove(log_id: int):
     """Remove a logged time entry."""
     cur = con.cursor()
-    cur.execute(f"DELETE FROM {TABLE} WHERE log_id = '{log_id}' AND logged_date = '{log_date}';")
+    cur.execute(f"DELETE FROM {TABLE} WHERE log_id = '{log_id}';")
     con.commit()
 
 def saldo():
@@ -236,11 +306,12 @@ def saldo():
     saldo = (timedelta(hours=expected_hours) - s).total_seconds()
     print(f"Saldo (in seconds): {saldo}")
     if saldo < 0:
-        print(f"Saldo: -{timedelta(seconds=abs(saldo))}")
+        console.print(f"Saldo: -{timedelta(seconds=abs(saldo))}", style="cyan")
     else:
-        print(f"Saldo: {timedelta(seconds=saldo)}")
+        text = Text(f"Saldo: {timedelta(seconds=saldo)}")
+        text.stylize("red")
+        console.print(text)
 
-        
 
 def main():
     if args.sum and (args.time_in != None or args.time_out != None or args.remove != None):
@@ -248,17 +319,20 @@ def main():
         sys.exit(1)
 
     if args.time_in != None:
-        log_in(args.date, args.time_in, "Coffee up and let's work!")
+        log_in(args.time_in, "Coffee up and let's work!")
     elif args.time_out != None:
-        log_out(args.date, args.time_out, "Remember why you work hard. Let's go home!")
+        log_out(args.time_out, "Remember why you work hard. Let's go home!")
     elif args.sum == True:
-        log_sum(args.date)
-    elif args.show == True:
-        log_show(args.date)
+        log_sum(args.sum)
+    elif args.show != None:
+        log_show(args.show)
     elif args.remove != None:
-        log_remove(args.date, args.remove)
-    elif args.saldo == True:
+        log_remove(args.remove)
+    else:
+        log_show()
         saldo()
+        print("\n")
+        parser.print_help()
 
 
 if __name__ == "__main__":

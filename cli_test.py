@@ -3,6 +3,7 @@ import sys
 
 parser = argparse.ArgumentParser(prog="Joel Log Time console app")
 
+'''
 parser.add_argument("date")
 parser.add_argument("-i", "--time-in", metavar="time")
 parser.add_argument("-o", "--time-out", metavar="time")
@@ -20,4 +21,10 @@ print(args.sum)
 print(args.time_in)
 print(args.time_out)
 print(args)
+'''
 
+
+parser.add_argument("-i", "--time-in", metavar="time")
+args = parser.parse_args()
+
+print(args.time_in)

@@ -1,21 +1,8 @@
 # Joel's Log Time (shell) app
 
-This app was originally written in Python, but I decided to re-write it in bash as I have a desire to get fluent in bash.
-
-Put the original python cmd line app in the sandbox folder.
+Just a little tool to track my work hours. Not fully functional yet.
 
 # Work notes
-
-## Handling cmd-line args (positional) in bash
-
-Reference and inspiration: https://www.redhat.com/sysadmin/arguments-options-bash-scripts
-
-Later learned there is also something called getopt. Here is my summary of the main and most important differences that helped me to decide (decided on getopts):
-
-* getopt is an external program
-* getopts is a bash builtin program
-* getopts seems to be more newer and standardized
-
 
 ## SQLite
 
@@ -70,3 +57,13 @@ sum_date    date
 sum         varchar(5)
 PRIMARY KEY (sum_id)
 
+
+## Handling cmd-line args (positional) in bash
+
+Reference and inspiration: https://www.redhat.com/sysadmin/arguments-options-bash-scripts
+
+Later learned there is also something called getopt. Here is my summary of the main and most important differences that helped me to decide (decided on getopts):
+
+* getopt is an external program
+* getopts is a bash builtin program
+* getopts seems to be more newer and standardized
